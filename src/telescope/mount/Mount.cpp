@@ -51,7 +51,9 @@ void Mount::init() {
 
 void Mount::begin() {
   axis1.calibrate();
+  axis1.enable(false);
   axis2.calibrate();
+  axis2.enable(false);
 
   // initialize the critical subsystems
   site.init();
@@ -162,11 +164,11 @@ void Mount::enable(bool state) {
     #if LIMIT_STRICT == ON
       if (!site.dateIsReady || !site.timeIsReady) return;
     #endif
-    if (firstEnable) mountStatus.ready();
-    firstEnable = false;
-  } else
 
-  if (state == false) {
+    if (firstEnable) { mountStatus.ready(); }
+
+    firstEnable = false;
+  } else {
     trackingState = TS_NONE;
     update();
   }

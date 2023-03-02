@@ -41,7 +41,7 @@
     ServoTmc2209 driver1(1, &ServoPinsAxis1, &ServoSettingsAxis1);
   #endif
 
-  ServoMotor motor1(1, ((ServoDriver*)&driver1), &encAxis1, &pidAxis1, &servoControlAxis1, AXIS1_SERVO_SYNC_THRESHOLD);
+  ServoMotor motor1(1, ((ServoDriver*)&driver1), &encAxis1, AXIS1_ENCODER_ORIGIN, AXIS1_ENCODER_REVERSE == ON, &pidAxis1, &servoControlAxis1, AXIS1_SERVO_SYNC_THRESHOLD);
 #endif
 
 #ifdef AXIS1_STEP_DIR_PRESENT
@@ -61,7 +61,7 @@
 
 const AxisPins PinsAxis1 = {AXIS1_SENSE_LIMIT_MIN_PIN, AXIS1_SENSE_HOME_PIN, AXIS1_SENSE_LIMIT_MAX_PIN, {AXIS1_SENSE_HOME, AXIS1_SENSE_HOME_INIT, degToRadF(AXIS1_SENSE_HOME_DIST_LIMIT), AXIS1_SENSE_LIMIT_MIN, AXIS1_SENSE_LIMIT_MAX, AXIS1_SENSE_LIMIT_INIT}};
 const AxisSettings SettingsAxis1 = {AXIS1_STEPS_PER_DEGREE*RAD_DEG_RATIO, AXIS1_REVERSE, {degToRadF(AXIS1_LIMIT_MIN), degToRadF(AXIS1_LIMIT_MAX)}, siderealToRad(TRACK_BACKLASH_RATE)};
-Axis axis1(1, &PinsAxis1, &SettingsAxis1, AXIS_MEASURE_RADIANS);
+Axis axis1(1, &PinsAxis1, &SettingsAxis1, AXIS_MEASURE_RADIANS, arcsecToRad(AXIS1_TARGET_TOLERANCE));
 
 #ifdef AXIS2_ODRIVE_PRESENT
   const ODriveDriverSettings ODriveSettingsAxis2 = {AXIS2_DRIVER_MODEL, AXIS2_DRIVER_STATUS};
@@ -99,7 +99,7 @@ Axis axis1(1, &PinsAxis1, &SettingsAxis1, AXIS_MEASURE_RADIANS);
     ServoTmc2209 driver2(2, &ServoPinsAxis2, &ServoSettingsAxis2);
   #endif
 
-  ServoMotor motor2(2, ((ServoDriver*)&driver2), &encAxis2, &pidAxis2, &servoControlAxis2, AXIS2_SERVO_SYNC_THRESHOLD);
+  ServoMotor motor2(2, ((ServoDriver*)&driver2), &encAxis2, AXIS2_ENCODER_ORIGIN, AXIS2_ENCODER_REVERSE == ON, &pidAxis2, &servoControlAxis2, AXIS2_SERVO_SYNC_THRESHOLD);
   IRAM_ATTR void moveAxis2() { motor2.move(); }
 #endif
 
@@ -120,6 +120,6 @@ Axis axis1(1, &PinsAxis1, &SettingsAxis1, AXIS_MEASURE_RADIANS);
 
 const AxisPins PinsAxis2 = {AXIS2_SENSE_LIMIT_MIN_PIN, AXIS2_SENSE_HOME_PIN, AXIS2_SENSE_LIMIT_MAX_PIN, {AXIS2_SENSE_HOME, AXIS2_SENSE_HOME_INIT, degToRadF(AXIS2_SENSE_HOME_DIST_LIMIT), AXIS2_SENSE_LIMIT_MIN, AXIS2_SENSE_LIMIT_MAX, AXIS2_SENSE_LIMIT_INIT}};
 const AxisSettings SettingsAxis2 = {AXIS2_STEPS_PER_DEGREE*RAD_DEG_RATIO, AXIS2_REVERSE, {degToRadF(AXIS2_LIMIT_MIN), degToRadF(AXIS2_LIMIT_MAX)}, siderealToRad(TRACK_BACKLASH_RATE)};
-Axis axis2(2, &PinsAxis2, &SettingsAxis2, AXIS_MEASURE_RADIANS);
+Axis axis2(2, &PinsAxis2, &SettingsAxis2, AXIS_MEASURE_RADIANS, arcsecToRad(AXIS2_TARGET_TOLERANCE));
 
 #endif
