@@ -15,6 +15,8 @@
 
   #if AXIS1_ENCODER == AB
     Quadrature encAxis1(AXIS1_ENCODER_A_PIN, AXIS1_ENCODER_B_PIN, 1);
+  #elif AXIS1_ENCODER == AB_ESP32
+    QuadratureEsp32 encAxis1(AXIS1_ENCODER_A_PIN, AXIS1_ENCODER_B_PIN, 1);
   #elif AXIS1_ENCODER == CW_CCW
     CwCcw encAxis1(AXIS1_ENCODER_A_PIN, AXIS1_ENCODER_B_PIN, 1);
   #elif AXIS1_ENCODER == PULSE_DIR
@@ -28,7 +30,7 @@
   #endif
 
   #if AXIS1_SERVO_FEEDBACK == FB_PID
-    Pid pidAxis1(AXIS1_SERVO_P, AXIS1_SERVO_I, AXIS1_SERVO_D, AXIS1_SERVO_P_GOTO, AXIS1_SERVO_I_GOTO, AXIS1_SERVO_D_GOTO);
+    Pid pidAxis1(AXIS1_SERVO_P, AXIS1_SERVO_I, AXIS1_SERVO_D, AXIS1_SERVO_P_GOTO, AXIS1_SERVO_I_GOTO, AXIS1_SERVO_D_GOTO, AXIS1_SERVO_VAR_PID_SENS);
   #endif
 
   #if defined(AXIS1_SERVO_DC)
@@ -41,7 +43,7 @@
     ServoTmc2209 driver1(1, &ServoPinsAxis1, &ServoSettingsAxis1);
   #endif
 
-  ServoMotor motor1(1, ((ServoDriver*)&driver1), &encAxis1, AXIS1_ENCODER_ORIGIN, AXIS1_ENCODER_REVERSE == ON, &pidAxis1, &servoControlAxis1, AXIS1_SERVO_SYNC_THRESHOLD);
+  ServoMotor motor1(1, ((ServoDriver*)&driver1), &encAxis1, AXIS1_ENCODER_ORIGIN, AXIS1_ENCODER_REVERSE == ON, &pidAxis1, &servoControlAxis1, AXIS1_SYNC_THRESHOLD);
 #endif
 
 #ifdef AXIS1_STEP_DIR_PRESENT
@@ -73,6 +75,8 @@ Axis axis1(1, &PinsAxis1, &SettingsAxis1, AXIS_MEASURE_RADIANS, arcsecToRad(AXIS
 
   #if AXIS2_ENCODER == AB
     Quadrature encAxis2(AXIS2_ENCODER_A_PIN, AXIS2_ENCODER_B_PIN, 2);
+  #elif AXIS2_ENCODER == AB_ESP32
+    QuadratureEsp32 encAxis2(AXIS2_ENCODER_A_PIN, AXIS2_ENCODER_B_PIN, 2);
   #elif AXIS2_ENCODER == CW_CCW
     CwCcw encAxis2(AXIS2_ENCODER_A_PIN, AXIS2_ENCODER_B_PIN, 2);
   #elif AXIS2_ENCODER == PULSE_DIR
@@ -86,7 +90,7 @@ Axis axis1(1, &PinsAxis1, &SettingsAxis1, AXIS_MEASURE_RADIANS, arcsecToRad(AXIS
   #endif
 
   #if AXIS2_SERVO_FEEDBACK == FB_PID
-    Pid pidAxis2(AXIS2_SERVO_P, AXIS2_SERVO_I, AXIS2_SERVO_D, AXIS2_SERVO_P_GOTO, AXIS2_SERVO_I_GOTO, AXIS2_SERVO_D_GOTO);
+    Pid pidAxis2(AXIS2_SERVO_P, AXIS2_SERVO_I, AXIS2_SERVO_D, AXIS2_SERVO_P_GOTO, AXIS2_SERVO_I_GOTO, AXIS2_SERVO_D_GOTO, AXIS2_SERVO_VAR_PID_SENS);
   #endif
 
   #if defined(AXIS2_SERVO_DC)
@@ -99,7 +103,7 @@ Axis axis1(1, &PinsAxis1, &SettingsAxis1, AXIS_MEASURE_RADIANS, arcsecToRad(AXIS
     ServoTmc2209 driver2(2, &ServoPinsAxis2, &ServoSettingsAxis2);
   #endif
 
-  ServoMotor motor2(2, ((ServoDriver*)&driver2), &encAxis2, AXIS2_ENCODER_ORIGIN, AXIS2_ENCODER_REVERSE == ON, &pidAxis2, &servoControlAxis2, AXIS2_SERVO_SYNC_THRESHOLD);
+  ServoMotor motor2(2, ((ServoDriver*)&driver2), &encAxis2, AXIS2_ENCODER_ORIGIN, AXIS2_ENCODER_REVERSE == ON, &pidAxis2, &servoControlAxis2, AXIS2_SYNC_THRESHOLD);
   IRAM_ATTR void moveAxis2() { motor2.move(); }
 #endif
 

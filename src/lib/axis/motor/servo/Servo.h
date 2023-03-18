@@ -10,12 +10,13 @@
 #include "../../../encoder/pulseDir/PulseDir.h"
 #include "../../../encoder/pulseOnly/PulseOnly.h"
 #include "../../../encoder/quadrature/Quadrature.h"
+#include "../../../encoder/quadratureEsp32/QuadratureEsp32.h"
 #include "../../../encoder/serialBridge/SerialBridge.h"
 
 #include "dc/Dc.h"
 #include "tmc2209/Tmc2209.h"
 
-#include "feedback/pid/Pid.h"
+#include "feedback/Pid/Pid.h"
 
 #ifndef ANALOG_WRITE_RANGE
   #define ANALOG_WRITE_RANGE 255
@@ -111,6 +112,7 @@ class ServoMotor : public Motor {
     unsigned long startTime = 0;        // time at start of servo polling
 
     volatile int absStep = 1;           // absolute step size (unsigned)
+    volatile long originIndexSteps = 0; // for absolute motor position to axis position at coordinate origin
 
     void (*callback)() = NULL;
 
