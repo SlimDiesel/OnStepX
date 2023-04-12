@@ -354,7 +354,7 @@ void ServoMotor::poll() {
 
   control->set = motorCounts;
   control->in = encoderCounts;
-  feedback->poll();
+  if (enabled) feedback->poll();
 
   float velocity = control->out;
   if (!enabled) velocity = 0.0F;
@@ -363,20 +363,44 @@ void ServoMotor::poll() {
   velocityPercent = (driver->setMotorVelocity(velocity)/driver->getMotorControlRange()) * 100.0F;
   if (driver->getMotorDirection() == DIR_FORWARD) control->directionHint = 1; else control->directionHint = -1;
 
-  // was velocityPercent*50 for 1/50th of the range i.e. 2%, now defaults to 20% and must be set
-  feedback->variableParameters(fabs(velocityPercent));
+  if (feedback->useVariableParameters) {
+    feedback->variableParameters(fabs(velocityPercent));
+  } else {
+    if (!slewing && enabled) feedback->selectTrackingParameters(); else feedback->selectSlewingParameters();
+  }
 
-  // if we're not moving "fast" and the motor is above 50% power something is seriously wrong, so shut it down
-  if (millis() - lastCheckTime > 1000) {
-    if (labs(encoderCounts - lastEncoderCounts) < 10 && abs(velocityPercent) >= 50) {
-      D(axisPrefix);
-      D("stall detected!");
-      D(" control->in = "); D(control->in);
-      D(", control->set = "); D(control->set);
-      D(", control->out = "); D(control->out);
-      D(", velocity % = "); DL(velocityPercent);
-      enable(false);
-    }
+  if (velocityPercent < -33) wasBelow33 = true;
+  if (velocityPercent > 33) wasAbove33 = true;
+
+  if (millis() - lastCheckTime > 2000) {
+
+    #ifndef SERVO_SAFETY_DISABLE
+      // if above 33% power and we're not moving something is seriously wrong, so shut it down
+      if (labs(encoderCounts - lastEncoderCounts) < 10 && abs(velocityPercent) >= 33) {
+        D(axisPrefix);
+        D("stall detected!"); D(" control->in = "); D(control->in); D(", control->set = "); D(control->set);
+        D(", control->out = "); D(control->out); D(", velocity % = "); DL(velocityPercent);
+        enable(false);
+      }
+
+      // if above 90% power and we're moving away from the target something is seriously wrong, so shut it down
+      if (labs(encoderCounts - lastEncoderCounts) > lastTargetDistance && abs(velocityPercent) >= 90) {
+        D(axisPrefix);
+        DL("runaway detected, > 90% power while moving away from the target!");
+        enable(false);
+      }
+      lastTargetDistance = labs(encoderCounts - lastEncoderCounts);
+
+      // if we were below -33% and above 33% power in a one second period something is seriously wrong, so shut it down
+      if (wasBelow33 && wasAbove33) {
+        D(axisPrefix);
+        DL("oscillation detected, below -33% and above 33% power in a 2 second period!");
+        enable(false);
+      }
+    #endif
+
+    wasAbove33 = false;
+    wasBelow33 = false;
     lastEncoderCounts = encoderCounts;
     lastCheckTime = millis();
   }
@@ -385,7 +409,7 @@ void ServoMotor::poll() {
     if (axisNumber == DEBUG_SERVO) {
       static uint16_t count = 0;
       count++;
-      if (count % 25 == 0) {
+      if (count % 10 == 0) {
         char s[800];
 
         float spas = 0;
