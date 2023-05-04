@@ -260,10 +260,10 @@
     #define AXIS1_SERVO_DC
   #endif
   #ifndef AXIS1_SERVO_PH1_STATE
-  #define AXIS1_SERVO_PH1_STATE         LOW                       // default state motor driver IN1 (SERVO_EE) or PHASE (SERVO_PE) pin
+  #define AXIS1_SERVO_PH1_STATE         LOW                       // default (inactive) motor driver state, IN1 (SERVO_EE) or PHASE (SERVO_PE) pin
   #endif
   #ifndef AXIS1_SERVO_PH2_STATE
-  #define AXIS1_SERVO_PH2_STATE         LOW                       // default state motor driver IN2 or ENABLE (pwm) pin
+  #define AXIS1_SERVO_PH2_STATE         LOW                       // default (inactive) motor driver state, IN2 or ENABLE (pwm) pin
   #endif
 
   #ifndef AXIS1_SERVO_MAX_VELOCITY
@@ -528,6 +528,12 @@
 #ifndef AXIS2_TARGET_TOLERANCE
 #define AXIS2_TARGET_TOLERANCE        0.0F                        // in arc-seconds
 #endif
+#ifndef AXIS1_HOME_TOLERANCE
+#define AXIS1_HOME_TOLERANCE          AXIS1_TARGET_TOLERANCE      // in arc-seconds
+#endif
+#ifndef AXIS2_HOME_TOLERANCE
+#define AXIS2_HOME_TOLERANCE          AXIS2_TARGET_TOLERANCE      // in arc-seconds
+#endif
 #ifndef AXIS1_WRAP
 #define AXIS1_WRAP                    OFF
 #endif
@@ -708,6 +714,12 @@
 #ifndef GOTO_OFFSET_ALIGN
 #define GOTO_OFFSET_ALIGN             OFF                         // skip final phase of goto for align stars so user tends to
 #endif                                                            // approach from the correct direction when centering
+#ifndef GOTO_SETTLE_TIME
+#define GOTO_SETTLE_TIME             1500                         // settle time in milliseconds for final phase of goto offset
+#endif                                                            // allows for settle and encoder sync if available
+#ifndef GOTO_REFINE_STAGES
+#define GOTO_REFINE_STAGES           1                            // number of times to perform the goto refinement stage
+#endif
 
 // meridian flip, pier side
 #ifndef MFLIP_SKIP_HOME
@@ -742,6 +754,10 @@
 
 #ifndef ALIGN_AUTO_HOME
 #define ALIGN_AUTO_HOME               OFF                         // uses home switches to find home before starting the align
+#endif
+
+#ifndef ALIGN_MODEL_MEMORY
+#define ALIGN_MODEL_MEMORY            OFF                         // restores any pointing model saved in NV at startup
 #endif
 
 #define HIGH_SPEED_ALIGN
