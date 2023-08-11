@@ -97,7 +97,7 @@ CommandError Goto::request(Coordinate coords, PierSideSelect pierSideSelect, boo
   #endif
 
   limits.enabled(true);
-  mount.syncToEncoders(false);
+  mount.syncFromOnStepToEncoders = false;
   if (firstGoto) {
     mount.tracking(true);
     firstGoto = false;
@@ -191,7 +191,7 @@ CommandError Goto::requestSync(Coordinate coords, PierSideSelect pierSideSelect,
   axis2.setInstrumentCoordinate(a2);
 
   limits.enabled(true);
-  mount.syncToEncoders(true);
+  mount.syncFromOnStepToEncoders = true;
 
   VLF("MSG: Mount, sync instrument coordinates updated");
 
@@ -350,7 +350,10 @@ CommandError Goto::alignAddStar() {
 
     #if ALIGN_MAX_NUM_STARS > 1
       e = transform.align.addStar(alignState.currentStar, alignState.lastStar, &lastAlignTarget, &mountPosition);
+    #else
+      UNUSED(mountPosition);
     #endif
+
     if (e == CE_NONE) alignState.currentStar++;
   }
 
@@ -420,7 +423,7 @@ void Goto::poll() {
       axis1.autoSlewAbort();
     }
   }
-  if (axis1.isSlewing()) {
+  if (axis2.isSlewing()) {
     if (!axis2.nearTarget()) nearTargetTimeoutAxis2 = millis();
     if ((long)(millis() - nearTargetTimeoutAxis2) > 15000) {
       DLF("WRN: Mount, goto axis2 timed out aborting slew!");
@@ -536,7 +539,7 @@ void Goto::poll() {
   }
 }
 
-// start slews with approach correction and parking support
+// start slews with approach correction and parking/homing support
 CommandError Goto::startAutoSlew() {
   CommandError e;
 

@@ -50,10 +50,10 @@ void Mount::init() {
 }
 
 void Mount::begin() {
-  axis1.calibrate();
-  axis1.enable(MOUNT_ENABLE_AT_STARTUP == ON);
-  axis2.calibrate();
-  axis2.enable(MOUNT_ENABLE_AT_STARTUP == ON);
+  axis1.calibrateDriver();
+  axis1.enable(MOUNT_ENABLE_IN_STANDBY == ON);
+  axis2.calibrateDriver();
+  axis2.enable(MOUNT_ENABLE_IN_STANDBY == ON);
 
   // initialize the critical subsystems
   site.init();
@@ -179,11 +179,6 @@ void Mount::enable(bool state) {
 
   axis1.enable(state);
   axis2.enable(state);
-}
-
-// allow syncing to the encoders instead of from them
-void Mount::syncToEncoders(bool state) {
-  syncToEncodersEnabled = state;
 }
 
 // updates the tracking rates, etc. as appropriate for the mount state

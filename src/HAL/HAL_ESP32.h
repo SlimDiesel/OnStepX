@@ -4,7 +4,7 @@
 // This is for fast processors with hardware FP
 #define HAL_FAST_PROCESSOR
 
-// 1/100 second sidereal timer
+// Base rate for critical task timing
 #define HAL_FRACTIONAL_SEC 100.0F
 
 // Analog read and write
@@ -107,6 +107,11 @@
 // a really short fixed delay (none needed)
 #define HAL_DELAY_25NS()
 
-// stand-in for delayNanoseconds(), assumes 240MHz clock
-#include "xtensa/core-macros.h"
-#define delayNanoseconds(ns) { unsigned int c = xthal_get_ccount() + ns/4.166F; do {} while ((int)(xthal_get_ccount() - c) < 0); }
+#ifdef ARDUINO_ESP32C3_DEV
+  // stand-in for delayNanoseconds(), assumes 80MHz clock
+  #define delayNanoseconds(ns) { unsigned int c = ESP.getCycleCount() + ns/12.5F; do {} while ((int)(ESP.getCycleCount() - c) < 0); }
+#else
+  // stand-in for delayNanoseconds(), assumes 240MHz clock
+  #include "xtensa/core-macros.h"
+  #define delayNanoseconds(ns) { unsigned int c = xthal_get_ccount() + ns/4.166F; do {} while ((int)(xthal_get_ccount() - c) < 0); }
+#endif

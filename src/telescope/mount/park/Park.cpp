@@ -197,8 +197,7 @@ void Park::requestDone() {
     VLF("MSG: Mount, parking done");
   } else { DLF("ERR: Mount::parkFinish(), Parking failed"); }
 
-  axis1.enable(false);
-  axis2.enable(false);
+  mount.enable(MOUNT_ENABLE_IN_STANDBY == ON);
 }
 
 // returns a parked telescope to operation
@@ -260,7 +259,7 @@ CommandError Park::restore(bool withTrackingOn) {
   nv.updateBytes(NV_MOUNT_PARK_BASE, &settings, sizeof(ParkSettings));
 
   limits.enabled(true);
-  mount.syncToEncoders(true);
+  if (!goTo.absoluteEncodersPresent) mount.syncFromOnStepToEncoders = true;
   if (withTrackingOn) mount.tracking(true);
 
   VLF("MSG: Mount, unparking done");

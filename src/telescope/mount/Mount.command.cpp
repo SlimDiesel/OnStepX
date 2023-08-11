@@ -57,9 +57,10 @@ bool Mount::command(char *reply, char *command, char *parameter, bool *supressFr
     // :GX          OnStep extended command
     if (command[1] == 'X' && parameter[2] == 0)  {
 
-      // :GX4[n]#   Get encoder absolute angle [n]
-      //            (0 and 1) Returns: DDD:MM:SS
-      //            (2 and 3) Returns: n.nnnnnn
+      // :GX4[n]#   Get angles [n]
+      //            (0 and 1) Returns instrument angle in: DDD:MM:SS#
+      //            (2 and 3) Returns instrument angle in: n.nnnnnn#
+      //            (4 and 5) Returns encoder angle in counts: n#
       if (parameter[0] == '4')  {
         *numericReply = false;
         switch (parameter[1]) {
@@ -67,6 +68,8 @@ bool Mount::command(char *reply, char *command, char *parameter, bool *supressFr
           case '1': convert.doubleToDms(reply, radToDeg(axis2.getInstrumentCoordinate()), true, true, PM_HIGH); break; 
           case '2': sprintF(reply, "%0.6f", radToDeg(axis1.getInstrumentCoordinate())); break;
           case '3': sprintF(reply, "%0.6f", radToDeg(axis2.getInstrumentCoordinate())); break;
+          case '4': sprintf(reply, "%ld", (long)axis1.motor->getEncoderCount()); break;
+          case '5': sprintf(reply, "%ld", (long)axis2.motor->getEncoderCount()); break;
           default:  *numericReply = true; *commandError = CE_CMD_UNKNOWN;
         }
       } else
@@ -150,7 +153,32 @@ bool Mount::command(char *reply, char *command, char *parameter, bool *supressFr
         }
       } else *commandError = CE_PARAM_RANGE;
     } else
-    
+
+    //  :SEO#         Set encoder origin (for Encoder Bridge) also resets OnStep
+    //                Return: 0 on failure
+    //                        1 on success
+    if (command[1] == 'E' && parameter[0] == 'O' && parameter[1] == 0) {
+      #ifdef SERVO_MOTOR_PRESENT
+        #if AXIS1_ENCODER == SERIAL_BRIDGE && AXIS2_ENCODER == SERIAL_BRIDGE && defined(SERIAL_ENCODER)
+          if (!mount.isTracking() && !mount.isSlewing()) {
+            VLF("MSG: Mount, setting absolute encoder origin");
+            SERIAL_ENCODER.print(":SO#");
+            #ifdef HAL_RESET
+              delay(100);
+              enable(false);
+              VLF("MSG: Mount, resetting OnStep...");
+              nv.wait();
+              tasks.yield(1000);
+              HAL_RESET();
+            #endif
+          } else {
+            *commandError = CE_0;
+            DLF("MSG: Mount, setting absolute encoder origin failed; the mount is in motion!");
+          }
+        #endif
+      #endif
+    } else
+
     if (command[1] == 'X') {
       if (parameter[2] != ',') { *commandError = CE_PARAM_FORM; return true; }
 
@@ -183,14 +211,14 @@ bool Mount::command(char *reply, char *command, char *parameter, bool *supressFr
                 CommandError e = goTo.validate();
                 if (e != CE_NONE) { *commandError = e; return true; }
               #endif
-              if (isnan(encoderAxis1) || isnan(encoderAxis2) || syncToEncodersEnabled) { *commandError = CE_0; return true; }
+              if (isnan(encoderAxis1) || isnan(encoderAxis2) || syncFromOnStepToEncoders) { *commandError = CE_0; return true; }
               axis1.setInstrumentCoordinate(encoderAxis1);
               axis2.setInstrumentCoordinate(encoderAxis2);
             }
           break;
 
           // allow sws to control sync mode
-          case '3': syncToEncodersEnabled = false; break;
+          case '3': syncFromOnStepToEncoders = false; break;
 
           // set and sync encoder Axis1 and Axis2 values
           case '4': {
@@ -208,7 +236,7 @@ bool Mount::command(char *reply, char *command, char *parameter, bool *supressFr
 
             if ( isnan(encoderAxis1) ||
                  isnan(encoderAxis2) ||
-                 syncToEncodersEnabled ||
+                 syncFromOnStepToEncoders ||
                  (goTo.state != GS_NONE && goTo.stage != GG_NEAR_DESTINATION_WAIT) ||
                  guide.state != GU_NONE) { *commandError = CE_0; return true; }
 
@@ -233,8 +261,9 @@ bool Mount::command(char *reply, char *command, char *parameter, bool *supressFr
         } else *commandError = CE_PARAM_RANGE;
       } else
 
-      // :SXTD,n.n# Set tracking rate offset Dec in arc-seconds/sidereal second
-      //            Return: 0 failure, 1 success
+      // :SXTD,n.n#   Set tracking rate offset Dec in arc-seconds/sidereal second
+      //              Return: 0 on failure
+      //                      1 on success
       if (parameter[0] == 'T' && parameter[1] == 'D') {
         float f = strtod(&parameter[3], &conv_end);
         if (f < -1800.0F) f = -1800.0F;
